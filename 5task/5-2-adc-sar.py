@@ -1,5 +1,5 @@
 import RPi.GPIO as GPIO
-from time import sleep
+import time
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -21,19 +21,29 @@ def adc():
         k += 2**i
         dac_val = dec2bin(k)
         GPIO.output(dac, dac_val)
-        sleep(0.01)
+        time.sleep(0.01)
         comp_val = GPIO.input(comp)
-        if comp_val == 0:
+        if comp_val:
             k -= 2**i
         print(dac_val)
     return k
 
+start_time = time.time()
+conversion_count = 0
+
 try:
     while True:
-        i = adc()
-        voltage = i * 3.3 / 256.0
-        if i: print("{:.2f)V".format(voltage))
+        value = adc()
+        voltage = value * 3.3 / 256.0
+        if value: 
+            print("Цифровое значение = {:^3}, Напряжение = {:.2f} B".format(value, voltage))
+            conversion_count += 1
 finally:
+    end_time = time.time()
     GPIO.output(dac, 0)
+    GPIO.output(troyka, 0)
     GPIO.cleanup()
+    print("Время работы {:.2f} секунд".format(end_time - start_time))
+    print("Количество преобразований: ", conversion_count)
+    print("Среднее время на преобразование: {:.3f} мс".format((end_time - start_time) * 1000 / max(1, conversion_count)))
     print("EOP")
