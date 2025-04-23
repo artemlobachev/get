@@ -7,33 +7,37 @@ def dec2bin(dec):
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
-dac           = [8, 11, 7, 1, 0, 5, 12, 6]
-comp          = 14
-troyka_module = 13
+dac    = [8, 11, 7, 1, 0, 5, 12, 6]
+comp   = 14
+troyka = 13
+
+GPIO.setup(dac, GPIO.OUT)
+GPIO.setup(troyka, GPIO.OUT, initial = GPIO.HIGH)
+GPIO.setup(comp, GPIO.IN)
+
 
 REFERENCE_VOLTAGE = 3.3
 
 def adc():
     for value in range(256):
         binary = dec2bin(value)
+
         GPIO.output(dac, binary)
-
-        time.sleep(0.001)
-
         comp_value = GPIO.input(comp)
-        if comp_value == 0:
+        time.sleep(0.01)
+        if comp_value:
             return value
         
-    return 255
+    return 0
 
 try:
     while True:
         value   = adc()
-        voltage = value / 255 * REFERENCE_VOLTAGE
-        print("Цифровое значение = {:^3}, Напряжение = {:.2f} B".format(value, voltage))
-        time.sleep(0.1)
+        voltage = value * REFERENCE_VOLTAGE / 256.0
+        if value: print("Цифровое значение = {:^3}, Напряжение = {:.2f} B".format(value, voltage))
 
 finally:
-    GPIO.output(dac, [0] * 8)
-    GPIO.output(troyka_module, 0)
+    GPIO.output(dac, 0)
+    GPIO.output(troyka, 0)
     GPIO.cleanup()
+    print("EOP")
