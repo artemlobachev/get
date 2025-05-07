@@ -78,7 +78,7 @@ try:
     sample_count = len(measurements)
     sample_rate = sample_count / duration
     quantization_step = 3.3 / 256
-    
+        
     save_data("data.txt", measurements)
     save_settings("settings.txt", sample_rate, quantization_step)
     
